@@ -1,0 +1,4 @@
+Name,Sam,Ou,Title,Dept
+Jane Doe,jdoe,"OU=Staff,DC=corp,DC=local",Support Analyst,IT
+John Smith,jsmith,"OU=Staff,DC=corp,DC=local",Accountant,Finance
+Maria Garcia,mgarcia,"OU=Staff,DC=corp,DC=local",Recruiter,HR
