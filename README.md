@@ -124,6 +124,72 @@ Lint with the same rule CI enforces (fail only on `Error` severity):
 Invoke-ScriptAnalyzer -Path ./AdAutomation.psm1, ./tests/AdAutomation.Tests.ps1
 ```
 
+## Example output
+
+The samples below are illustrative — they show the PowerShell object format each function returns so you know what to pipe, filter, or export. *(illustrative)*
+
+---
+
+### `Get-StaleAdAccount`
+
+```powershell
+Get-StaleAdAccount -DaysInactive 90 | Format-Table -AutoSize
+```
+
+```
+SamAccountName  Name            Enabled  LastLogonDate          DaysInactive
+--------------  ----            -------  -------------          ------------
+bwilson         Brian Wilson    True     2026-01-14 08:22:11         157
+lpatel          Linda Patel     True     2025-12-30 17:05:44         172
+sramirez        Sandra Ramirez  True                                    (never logged on)
+```
+
+`DaysInactive` is `$null` for accounts that have never logged on; `LastLogonDate` is blank for those rows. Pipe to `Export-Csv` to hand this off to a manager or licensing team.
+
+---
+
+### `New-BulkAdUser`
+
+```powershell
+$pw = ConvertTo-SecureString 'Welcome1!' -AsPlainText -Force
+New-BulkAdUser -CsvPath .\users.csv -InitialPassword $pw -AddToGroups 'AllStaff' |
+    Format-Table -AutoSize
+```
+
+```
+Sam      Status   Message
+---      ------   -------
+jdoe     Created  Created in OU=Staff,DC=corp,DC=local
+jsmith   Created  Created in OU=Staff,DC=corp,DC=local
+mgarcia  Error    The specified account already exists.
+```
+
+Each row maps 1:1 to a CSV line. `Status` is one of `Created`, `Skipped`, `WhatIf`, or `Error`, making it easy to filter failures: `... | Where-Object Status -eq 'Error'`.
+
+---
+
+### `Disable-OffboardUser`
+
+```powershell
+Disable-OffboardUser -Identity jsmith -DisabledOu 'OU=Disabled,DC=corp,DC=local' -LogPath .\offboard.log
+```
+
+```
+Sam           : jsmith
+Status        : Offboarded
+GroupsRemoved : 3
+MovedTo       : OU=Disabled,DC=corp,DC=local
+Message       : Disabled and moved at 2026-06-20 09:15:32
+```
+
+The corresponding line appended to `offboard.log`:
+
+```
+2026-06-20 09:15:32	Offboarded	jsmith	removed 3 group(s)	moved to OU=Disabled,DC=corp,DC=local
+```
+
+---
+
 ## Limitations
 
 - Wraps a **subset** of common operations; it is not a full AD management suite.
